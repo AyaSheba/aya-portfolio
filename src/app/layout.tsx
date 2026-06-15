@@ -17,9 +17,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "Aya Chen — Set Design & Production Styling",
+  title: "Aya Sheba — Set Design & Production Styling",
   description:
-    "Portfolio of Aya Chen — a designer working in film and TV set design, production styling, and spatial storytelling.",
+    "Portfolio of Aya Sheba — working in film and TV set design, production styling, and spatial storytelling.",
 }
 
 export default function RootLayout({
