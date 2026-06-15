@@ -29,7 +29,7 @@ export default async function Home() {
               </h1>
             </HeroAnimation>
             <div className="animate-fade-in-up reveal-delay-1 opacity-0">
-              <p className="mt-10 mb-10 text-[10px] tracking-[0.35em] text-gold md:text-xs">
+              <p className="mt-6 mb-6 text-[10px] tracking-[0.35em] text-gold md:mt-10 md:mb-10 md:text-xs">
                 {settings.hero_subtitle}
               </p>
             </div>
@@ -58,7 +58,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="selected-works" className="py-16 md:py-20">
+      <section id="selected-works" className="py-20 md:py-24">
         <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
           <div className="mb-10 flex items-end justify-between">
             <span className="text-xs font-medium tracking-[0.3em] uppercase text-gold">
@@ -80,7 +80,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="border-t border-border py-16 md:py-20">
+      <section className="border-t border-border py-20 md:py-24">
         <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
           <span className="mb-8 block text-xs font-medium tracking-[0.3em] uppercase text-gold">
             Process
