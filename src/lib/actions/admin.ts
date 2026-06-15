@@ -170,7 +170,7 @@ export async function seedProjects() {
       ],
       credits: [
         { role: "Director", name: "Elena Marchetti" },
-        { role: "Production Designer", name: "Aya Chen" },
+        { role: "Production Designer", name: "Aya Sheba" },
         { role: "DOP", name: "Rafael Torres" },
       ],
       featured: true,
