@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, FolderKanban, Settings, LogOut } from "lucide-react"
+import { LayoutDashboard, FolderKanban, Settings, MessageSquare, LogOut } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
+  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
   { href: "/admin/site", label: "Site Settings", icon: Settings },
 ]
 

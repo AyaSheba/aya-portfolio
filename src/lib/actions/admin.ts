@@ -263,6 +263,28 @@ export async function seedProjects() {
   return { count: projects.length }
 }
 
+export async function markMessageAsRead(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("contact_messages")
+    .update({ status: "read" })
+    .eq("id", id)
+  if (error) throw new Error(error.message)
+
+  revalidatePath("/admin/messages")
+}
+
+export async function deleteMessage(id: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("contact_messages")
+    .delete()
+    .eq("id", id)
+  if (error) throw new Error(error.message)
+
+  revalidatePath("/admin/messages")
+}
+
 export async function uploadImage(formData: FormData) {
   const supabase = await createClient()
   const file = formData.get("file") as File

@@ -58,15 +58,7 @@ export default async function ContactPage() {
                   </span>
                   <p className="mt-1 flex items-center gap-2 text-sm text-cream">
                     <MapPin className="h-3 w-3 text-gold" />
-                    Los Angeles / New York
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[10px] tracking-[0.3em] uppercase text-text-muted">
-                    Representation
-                  </span>
-                  <p className="mt-1 text-sm text-cream">
-                    Available through Studio 8 Management
+                    Cairo / Egypt
                   </p>
                 </div>
               </div>
