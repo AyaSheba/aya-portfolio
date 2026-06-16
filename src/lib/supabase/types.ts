@@ -1,4 +1,4 @@
-import type { Project } from "@/lib/projects"
+import type { GalleryItem, Project } from "@/lib/projects"
 
 export interface ProjectRow {
   id: string
@@ -13,10 +13,10 @@ export interface ProjectRow {
   description: string
   cover_image: string | null
   hero_image: string | null
-  mood_images: string[]
-  sketch_images: string[]
-  material_images: string[]
-  gallery_images: string[]
+  mood_images: GalleryItem[]
+  sketch_images: GalleryItem[]
+  material_images: GalleryItem[]
+  gallery_images: GalleryItem[]
   materials: { label: string; value: string }[]
   credits: { role: string; name: string }[]
   featured: boolean

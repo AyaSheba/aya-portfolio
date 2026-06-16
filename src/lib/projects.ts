@@ -1,3 +1,5 @@
+export type GalleryItem = string | { type: "image" | "video"; url: string }
+
 export interface Project {
   slug: string
   title: string
@@ -9,9 +11,9 @@ export interface Project {
   concept: string
   hero: string
   thumbnail: string
-  gallery: string[]
-  sketches: string[]
-  references: string[]
+  gallery: GalleryItem[]
+  sketches: GalleryItem[]
+  references: GalleryItem[]
   materials: { label: string; value: string }[]
   credits?: { role: string; name: string }[]
 }

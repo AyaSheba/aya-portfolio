@@ -6,6 +6,7 @@ import { Plus, X, Upload, ExternalLink, CheckCircle } from "lucide-react"
 import { createProject, updateProject, uploadImage } from "@/lib/actions/admin"
 import { compressImage } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
+import type { GalleryItem } from "@/lib/projects"
 
 interface Props {
   initial?: {
@@ -19,10 +20,10 @@ interface Props {
     description: string
     cover_image: string | null
     hero_image: string | null
-    mood_images: string[]
-    sketch_images: string[]
-    material_images: string[]
-    gallery_images: string[]
+    mood_images: GalleryItem[]
+    sketch_images: GalleryItem[]
+    material_images: GalleryItem[]
+    gallery_images: GalleryItem[]
     materials: { label: string; value: string }[]
     credits: { role: string; name: string }[]
     featured: boolean
@@ -58,10 +59,10 @@ export function ProjectForm({ initial }: Props) {
 
   const [coverImage, setCoverImage] = useState(initial?.cover_image ?? "")
   const [heroImage, setHeroImage] = useState(initial?.hero_image ?? "")
-  const [moodImages, setMoodImages] = useState<string[]>(initial?.mood_images ?? [])
-  const [sketchImages, setSketchImages] = useState<string[]>(initial?.sketch_images ?? [])
-  const [materialImages, setMaterialImages] = useState<string[]>(initial?.material_images ?? [])
-  const [galleryImages, setGalleryImages] = useState<string[]>(initial?.gallery_images ?? [])
+  const [moodImages, setMoodImages] = useState<GalleryItem[]>(initial?.mood_images ?? [])
+  const [sketchImages, setSketchImages] = useState<GalleryItem[]>(initial?.sketch_images ?? [])
+  const [materialImages, setMaterialImages] = useState<GalleryItem[]>(initial?.material_images ?? [])
+  const [galleryImages, setGalleryImages] = useState<GalleryItem[]>(initial?.gallery_images ?? [])
 
   const [credits, setCredits] = useState<{ role: string; name: string }[]>(initial?.credits ?? [])
   const [featured, setFeatured] = useState(initial?.featured ?? false)
@@ -81,17 +82,43 @@ export function ProjectForm({ initial }: Props) {
     )
   }
 
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
-  const MAX_SIZE = 15 * 1024 * 1024
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
+  const IMAGE_MAX_SIZE = 15 * 1024 * 1024
+  const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm"]
+  const VIDEO_MAX_SIZE = 50 * 1024 * 1024
 
-  function validateFile(file: File): string | null {
-    if (!ALLOWED_TYPES.includes(file.type)) {
+  function validateImageFile(file: File): string | null {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       return "Invalid file type. Please upload JPG, PNG, or WebP."
     }
-    if (file.size > MAX_SIZE) {
+    if (file.size > IMAGE_MAX_SIZE) {
       return "Image is too large. Please upload an image under 15MB."
     }
     return null
+  }
+
+  function validateVideoFile(file: File): string | null {
+    if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
+      return "Invalid video type. Please upload MP4 or WebM."
+    }
+    if (file.size > VIDEO_MAX_SIZE) {
+      return "Video is too large. Please upload a video under 50MB."
+    }
+    return null
+  }
+
+  function isGalleryKey(v: string): v is GalleryKey {
+    return v in galleryLabels
+  }
+
+  function appendToGallery(key: GalleryKey, item: GalleryItem) {
+    const setters: Record<GalleryKey, React.Dispatch<React.SetStateAction<GalleryItem[]>>> = {
+      mood_images: setMoodImages,
+      sketch_images: setSketchImages,
+      material_images: setMaterialImages,
+      gallery_images: setGalleryImages,
+    }
+    setters[key]((p) => [...p, item])
   }
 
   const handleUpload = useCallback(
@@ -102,7 +129,7 @@ export function ProjectForm({ initial }: Props) {
       input.onchange = async () => {
         const file = input.files?.[0]
         if (!file) return
-        const validationError = validateFile(file)
+        const validationError = validateImageFile(file)
         if (validationError) {
           setError(validationError)
           return
@@ -126,10 +153,47 @@ export function ProjectForm({ initial }: Props) {
 
           if (target === "cover_image") setCoverImage(url)
           else if (target === "hero_image") setHeroImage(url)
-          else if (target === "mood_images") setMoodImages((p) => [...p, url])
-          else if (target === "sketch_images") setSketchImages((p) => [...p, url])
-          else if (target === "material_images") setMaterialImages((p) => [...p, url])
-          else if (target === "gallery_images") setGalleryImages((p) => [...p, url])
+          else if (isGalleryKey(target)) appendToGallery(target, { type: "image", url })
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Upload failed")
+        } finally {
+          setUploading(null)
+          setUploadStatus(null)
+        }
+      }
+      input.click()
+    },
+    [],
+  )
+
+  const handleVideoUpload = useCallback(
+    async (target: GalleryKey) => {
+      const input = document.createElement("input")
+      input.type = "file"
+      input.accept = "video/mp4,video/webm"
+      input.onchange = async () => {
+        const file = input.files?.[0]
+        if (!file) return
+        const validationError = validateVideoFile(file)
+        if (validationError) {
+          setError(validationError)
+          return
+        }
+        setUploading(target)
+        setError("")
+        try {
+          setUploadStatus("Uploading video\u2026")
+
+          const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4"
+          const sanitizedName = `${crypto.randomUUID()}.${ext}`
+          const renamedFile = new File([file], sanitizedName, { type: file.type })
+
+          const fd = new FormData()
+          fd.append("file", renamedFile)
+          fd.append("bucket", "portfolio-images")
+          const url = await uploadImage(fd)
+
+          if (isGalleryKey(target)) appendToGallery(target, { type: "video", url })
         } catch (e) {
           setError(e instanceof Error ? e.message : "Upload failed")
         } finally {
@@ -143,13 +207,13 @@ export function ProjectForm({ initial }: Props) {
   )
 
   function removeGalleryImg(key: GalleryKey, idx: number) {
-    const setters: Record<GalleryKey, (v: string[]) => void> = {
+    const setters: Record<GalleryKey, (v: GalleryItem[]) => void> = {
       mood_images: setMoodImages,
       sketch_images: setSketchImages,
       material_images: setMaterialImages,
       gallery_images: setGalleryImages,
     }
-    const state: Record<GalleryKey, string[]> = {
+    const state: Record<GalleryKey, GalleryItem[]> = {
       mood_images: moodImages,
       sketch_images: sketchImages,
       material_images: materialImages,
@@ -300,7 +364,7 @@ export function ProjectForm({ initial }: Props) {
       <Section title="Galleries">
         <div className="space-y-8">
           {(Object.keys(galleryLabels) as GalleryKey[]).map((key) => {
-            const images: Record<GalleryKey, string[]> = {
+            const images: Record<GalleryKey, GalleryItem[]> = {
               mood_images: moodImages,
               sketch_images: sketchImages,
               material_images: materialImages,
@@ -314,6 +378,7 @@ export function ProjectForm({ initial }: Props) {
                 uploading={uploading === key}
                 uploadStatus={uploading === key ? uploadStatus : null}
                 onUpload={() => handleUpload(key)}
+                onVideoUpload={() => handleVideoUpload(key)}
                 onRemove={(idx) => removeGalleryImg(key, idx)}
               />
             )
@@ -533,46 +598,79 @@ function SingleImageUpload({
   )
 }
 
+function getItemUrl(item: GalleryItem): string {
+  return typeof item === "string" ? item : item.url
+}
+
+function isVideoItem(item: GalleryItem): boolean {
+  return typeof item !== "string" && item.type === "video"
+}
+
 function GallerySection({
   label,
   images,
   uploading,
   uploadStatus,
   onUpload,
+  onVideoUpload,
   onRemove,
 }: {
   label: string
-  images: string[]
+  images: GalleryItem[]
   uploading: boolean
   uploadStatus: string | null
   onUpload: () => void
+  onVideoUpload: () => void
   onRemove: (idx: number) => void
 }) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs tracking-[0.15em] uppercase text-[#686058]">{label}</span>
-        <button
-          type="button"
-          onClick={onUpload}
-          disabled={uploading}
-          className="flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase text-[#b89a5e] transition-opacity hover:opacity-80 disabled:opacity-50"
-        >
-          {uploading ? (
-            uploadStatus || "Uploading\u2026"
-          ) : (
-            <>
-              <Plus className="h-3 w-3" />
-              Add Image
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onVideoUpload}
+            disabled={uploading}
+            className="flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase text-[#b89a5e] transition-opacity hover:opacity-80 disabled:opacity-50"
+          >
+            {uploading ? (
+              uploadStatus || "Uploading\u2026"
+            ) : (
+              <>
+                <Plus className="h-3 w-3" />
+                Add Video
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={onUpload}
+            disabled={uploading}
+            className="flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase text-[#b89a5e] transition-opacity hover:opacity-80 disabled:opacity-50"
+          >
+            {uploading ? (
+              uploadStatus || "Uploading\u2026"
+            ) : (
+              <>
+                <Plus className="h-3 w-3" />
+                Add Image
+              </>
+            )}
+          </button>
+        </div>
       </div>
       {images.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {images.map((url, i) => (
+          {images.map((item, i) => (
             <div key={i} className="group relative overflow-hidden border border-[#1a1a1a]">
-              <img src={url} alt={`${label} ${i + 1}`} className="h-20 w-28 object-cover" />
+              {isVideoItem(item) ? (
+                <div className="flex h-20 w-28 items-center justify-center bg-[#0f0f0f]">
+                  <span className="text-[9px] tracking-[0.15em] uppercase text-[#686058]">Video</span>
+                </div>
+              ) : (
+                <img src={getItemUrl(item)} alt={`${label} ${i + 1}`} className="h-20 w-28 object-cover" />
+              )}
               <button
                 type="button"
                 onClick={() => onRemove(i)}
