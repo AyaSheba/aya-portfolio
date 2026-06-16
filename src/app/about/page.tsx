@@ -29,14 +29,6 @@ const howWork = [
   },
 ]
 
-const clients = [
-  "Netflix",
-  "Shahid",
-  "Watch It",
-  "MBC",
-  "Art Department",
-  "Production House",
-]
 
 export default async function AboutPage() {
   const settings = await getSiteSettings()
@@ -126,24 +118,6 @@ export default async function AboutPage() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-border py-20">
-        <div className="mx-auto max-w-[1440px] px-6 md:px-12 lg:px-16">
-          <span className="mb-8 block text-xs font-medium tracking-[0.3em] uppercase text-gold">
-            Selected Clients
-          </span>
-          <div className="flex flex-wrap gap-x-12 gap-y-4">
-            {clients.map((client) => (
-              <span
-                key={client}
-                className="font-serif text-lg tracking-wide text-text-muted"
-              >
-                {client}
-              </span>
             ))}
           </div>
         </div>
