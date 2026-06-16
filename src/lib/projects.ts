@@ -52,7 +52,7 @@ export const projects: Project[] = [
     ],
     credits: [
       { role: "Director", name: "Elena Marchetti" },
-      { role: "Production Designer", name: "Aya Chen" },
+      { role: "Production Designer", name: "Aya Sheba" },
       { role: "DOP", name: "Rafael Torres" },
     ],
   },

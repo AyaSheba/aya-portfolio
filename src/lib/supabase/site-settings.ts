@@ -101,7 +101,7 @@ const defaults: SiteSettings = {
   process_subtitle: "How I Work",
   process_steps: defaultSteps,
   footer_text: "Let\u2019s create something unforgettable.",
-  contact_email: "hello@ayachensf.com",
+  contact_email: "aya.sheba@outlook.com",
   instagram_url: "#",
   linkedin_url: "#",
   created_at: "",
