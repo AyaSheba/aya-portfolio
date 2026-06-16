@@ -2,51 +2,45 @@
 
 import { useState } from "react"
 import { ImageLightbox } from "@/components/image-lightbox"
-import type { GalleryItem } from "@/lib/projects"
+import { useHorizontalDrag } from "@/hooks/use-horizontal-drag"
 
-function getUrl(item: GalleryItem): string {
+function getUrl(item: string | { type?: string; url: string }): string {
   return typeof item === "string" ? item : item.url
 }
 
-function isVideo(item: GalleryItem): boolean {
+function isVideo(item: string | { type?: string; url: string }): boolean {
   return typeof item !== "string" && item.type === "video"
 }
 
 interface Props {
-  images: GalleryItem[]
+  images: (string | { type?: string; url: string })[]
 }
 
 export function ProjectImageGrid({ images }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const imageItems = images.filter((item) => !isVideo(item))
-  const indices = imageItems.map((item) => images.indexOf(item))
+  const { ref, handlers, isDragging } = useHorizontalDrag()
+
+  const filtered = images.filter((item) => !isVideo(item))
+  const imageUrls = filtered.map(getUrl)
 
   return (
     <>
-      <div className="flex gap-3 overflow-x-auto pb-2 max-w-full">
+      <div
+        ref={ref}
+        {...handlers}
+        className="flex cursor-grab gap-3 overflow-x-auto pb-2 max-w-full touch-pan-x select-none"
+      >
         {images.map((item, i) => {
           const url = getUrl(item)
-          if (isVideo(item)) {
-            return (
-              <div
-                key={i}
-                className="aspect-[4/3] min-w-[320px] flex-shrink-0 overflow-hidden border border-gold/20 md:min-w-[360px]"
-              >
-                <video
-                  src={url}
-                  controls
-                  preload="metadata"
-                  playsInline
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )
-          }
           return (
             <button
               key={i}
               type="button"
-              onClick={() => setLightboxIndex(i)}
+              onClick={() => {
+                if (isDragging.current) return
+                const idx = filtered.indexOf(item)
+                if (idx !== -1) setLightboxIndex(idx)
+              }}
               className="aspect-[4/3] min-w-[240px] flex-shrink-0 overflow-hidden border border-gold/20 md:min-w-[280px] cursor-pointer group"
             >
               <div
@@ -59,14 +53,10 @@ export function ProjectImageGrid({ images }: Props) {
       </div>
       {lightboxIndex !== null && (
         <ImageLightbox
-          images={imageItems.map(getUrl)}
-          index={imageItems.indexOf(images[lightboxIndex])}
+          images={imageUrls}
+          index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
-          onNavigate={(i) => {
-            const target = imageItems[i]
-            const realIdx = images.indexOf(target)
-            setLightboxIndex(realIdx)
-          }}
+          onNavigate={(i) => setLightboxIndex(i)}
         />
       )}
     </>
