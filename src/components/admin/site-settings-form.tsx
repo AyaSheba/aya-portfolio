@@ -35,13 +35,31 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
   const [instagram_url, setInstagramUrl] = useState(settings.instagram_url)
   const [linkedin_url, setLinkedinUrl] = useState(settings.linkedin_url)
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+  const MAX_SIZE = 15 * 1024 * 1024
+
+  function validateFile(file: File): string | null {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return "Invalid file type. Please upload JPG, PNG, or WebP."
+    }
+    if (file.size > MAX_SIZE) {
+      return "Image is too large. Please upload an image under 15MB."
+    }
+    return null
+  }
+
   const handleUpload = async (target: string) => {
     const input = document.createElement("input")
     input.type = "file"
-    input.accept = "image/*"
+    input.accept = "image/jpeg,image/png,image/webp"
     input.onchange = async () => {
       const file = input.files?.[0]
       if (!file) return
+      const validationError = validateFile(file)
+      if (validationError) {
+        setError(validationError)
+        return
+      }
       setUploading(target)
       try {
         const fd = new FormData()
@@ -60,8 +78,8 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
             )
           }
         }
-      } catch {
-        setError("Upload failed")
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Upload failed")
       } finally {
         setUploading(null)
       }

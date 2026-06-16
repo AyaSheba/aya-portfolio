@@ -292,7 +292,7 @@ export async function uploadImage(formData: FormData) {
 
   if (!file) throw new Error("No file provided")
 
-  const ext = file.name.split(".").pop()
+  const ext = (file.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "")
   const fileName = `${crypto.randomUUID()}.${ext}`
 
   const { data, error } = await supabase.storage

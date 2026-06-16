@@ -78,14 +78,32 @@ export function ProjectForm({ initial }: Props) {
     )
   }
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+  const MAX_SIZE = 15 * 1024 * 1024
+
+  function validateFile(file: File): string | null {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return "Invalid file type. Please upload JPG, PNG, or WebP."
+    }
+    if (file.size > MAX_SIZE) {
+      return "Image is too large. Please upload an image under 15MB."
+    }
+    return null
+  }
+
   const handleUpload = useCallback(
     async (target: GalleryKey | ImageKey) => {
       const input = document.createElement("input")
       input.type = "file"
-      input.accept = "image/*"
+      input.accept = "image/jpeg,image/png,image/webp"
       input.onchange = async () => {
         const file = input.files?.[0]
         if (!file) return
+        const validationError = validateFile(file)
+        if (validationError) {
+          setError(validationError)
+          return
+        }
         setUploading(target)
         try {
           const fd = new FormData()
@@ -99,8 +117,8 @@ export function ProjectForm({ initial }: Props) {
           else if (target === "sketch_images") setSketchImages((p) => [...p, url])
           else if (target === "material_images") setMaterialImages((p) => [...p, url])
           else if (target === "gallery_images") setGalleryImages((p) => [...p, url])
-        } catch {
-          setError("Upload failed")
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Upload failed")
         } finally {
           setUploading(null)
         }
