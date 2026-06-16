@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { getProjectBySlug } from "@/lib/supabase/projects"
 import { SectionReveal } from "@/components/section-reveal"
 import { ProjectImageGrid } from "@/components/project-image-grid"
+import { cn } from "@/lib/utils"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -115,7 +116,7 @@ export default async function ProjectPage({ params }: Props) {
               </h2>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-[1fr_280px]">
+            <div className={cn("grid gap-8", section.images.length > 0 && section.images.length <= 3 && "md:grid-cols-[1fr_280px]")}>
               <div>
                 {section.images.length > 0 ? (
                   <ProjectImageGrid images={section.images} />
