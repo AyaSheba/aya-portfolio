@@ -34,7 +34,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-background font-sans text-text-primary">
         <Navigation />
-        <main>{children}</main>
+        <main className="overflow-x-hidden">{children}</main>
         <Footer />
       </body>
     </html>

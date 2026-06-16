@@ -117,7 +117,7 @@ export default async function ProjectPage({ params }: Props) {
             </div>
 
             <div className={cn("grid gap-8", section.images.length > 0 && section.images.length <= 3 && "md:grid-cols-[1fr_280px]")}>
-              <div>
+              <div className="min-w-0">
                 {section.images.length > 0 ? (
                   <ProjectImageGrid images={section.images} />
                 ) : (

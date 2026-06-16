@@ -92,7 +92,7 @@ export function ProjectImageGrid({ images }: Props) {
     <>
       <div
         ref={scrollRef}
-        className="flex cursor-grab gap-4 overflow-x-auto pb-2 max-w-full touch-pan-x select-none active:cursor-grabbing"
+        className="flex cursor-grab gap-4 overflow-x-auto pb-2 w-full min-w-0 max-w-full overscroll-x-contain touch-pan-x select-none active:cursor-grabbing"
       >
         {images.map((item, i) => {
           const url = getUrl(item)
