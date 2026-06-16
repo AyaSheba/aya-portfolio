@@ -3,6 +3,19 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
+function containsRawMedia(value: unknown): boolean {
+  if (typeof value === "string") {
+    if (value.startsWith("data:") || value.startsWith("blob:")) return true
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => containsRawMedia(item))
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).some((v) => containsRawMedia(v))
+  }
+  return false
+}
+
 export async function saveSiteSettings(formData: FormData) {
   const supabase = await createClient()
 
@@ -12,6 +25,17 @@ export async function saveSiteSettings(formData: FormData) {
     process_steps = JSON.parse(processStepsRaw)
   } catch {
     process_steps = []
+  }
+
+  if (containsRawMedia(process_steps)) {
+    throw new Error("Media must be uploaded before saving.")
+  }
+
+  for (const key of ["hero_background_image", "about_image"]) {
+    const val = formData.get(key) as string
+    if (val.startsWith("data:") || val.startsWith("blob:")) {
+      throw new Error("Media must be uploaded before saving.")
+    }
   }
 
   const payload = {

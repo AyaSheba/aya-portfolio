@@ -2,6 +2,29 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import type { GalleryItem } from "@/lib/projects"
+
+function containsRawMedia(value: unknown): boolean {
+  if (typeof value === "string") {
+    if (value.startsWith("data:") || value.startsWith("blob:")) return true
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => containsRawMedia(item))
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).some((v) => containsRawMedia(v))
+  }
+  return false
+}
+
+function parseAndGuard(formData: FormData, key: string): unknown {
+  const raw = formData.get(key) as string
+  const parsed = JSON.parse(raw || "[]")
+  if (containsRawMedia(parsed)) {
+    throw new Error("Media must be uploaded before saving.")
+  }
+  return parsed
+}
 
 export async function createProject(formData: FormData) {
   const supabase = await createClient()
@@ -15,10 +38,10 @@ export async function createProject(formData: FormData) {
   const description = formData.get("description") as string
   const cover_image = formData.get("cover_image") as string
   const hero_image = formData.get("hero_image") as string
-  const mood_images = JSON.parse((formData.get("mood_images") as string) || "[]")
-  const sketch_images = JSON.parse((formData.get("sketch_images") as string) || "[]")
-  const material_images = JSON.parse((formData.get("material_images") as string) || "[]")
-  const gallery_images = JSON.parse((formData.get("gallery_images") as string) || "[]")
+  const mood_images = parseAndGuard(formData, "mood_images") as GalleryItem[]
+  const sketch_images = parseAndGuard(formData, "sketch_images") as GalleryItem[]
+  const material_images = parseAndGuard(formData, "material_images") as GalleryItem[]
+  const gallery_images = parseAndGuard(formData, "gallery_images") as GalleryItem[]
   const materials = JSON.parse((formData.get("materials") as string) || "[]")
   const credits = JSON.parse((formData.get("credits") as string) || "[]")
   const featured = formData.get("featured") === "true"
@@ -71,10 +94,10 @@ export async function updateProject(id: string, formData: FormData) {
   const description = formData.get("description") as string
   const cover_image = formData.get("cover_image") as string
   const hero_image = formData.get("hero_image") as string
-  const mood_images = JSON.parse((formData.get("mood_images") as string) || "[]")
-  const sketch_images = JSON.parse((formData.get("sketch_images") as string) || "[]")
-  const material_images = JSON.parse((formData.get("material_images") as string) || "[]")
-  const gallery_images = JSON.parse((formData.get("gallery_images") as string) || "[]")
+  const mood_images = parseAndGuard(formData, "mood_images") as GalleryItem[]
+  const sketch_images = parseAndGuard(formData, "sketch_images") as GalleryItem[]
+  const material_images = parseAndGuard(formData, "material_images") as GalleryItem[]
+  const gallery_images = parseAndGuard(formData, "gallery_images") as GalleryItem[]
   const materials = JSON.parse((formData.get("materials") as string) || "[]")
   const credits = JSON.parse((formData.get("credits") as string) || "[]")
   const featured = formData.get("featured") === "true"

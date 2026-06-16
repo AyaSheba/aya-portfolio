@@ -4,8 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Upload, ExternalLink, X, CheckCircle } from "lucide-react"
 import { saveSiteSettings } from "@/lib/actions/admin-site"
-import { uploadImage } from "@/lib/actions/admin"
 import { compressImage } from "@/lib/image-compression"
+import { uploadMedia } from "@/lib/supabase/upload"
 import { cn } from "@/lib/utils"
 import type { SiteSettings, ProcessStep } from "@/lib/supabase/site-settings"
 
@@ -74,10 +74,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
           type: `image/${ext === "jpg" ? "jpeg" : ext}`,
         })
 
-        const fd = new FormData()
-        fd.append("file", compressedFile)
-        fd.append("bucket", "portfolio-images")
-        const url = await uploadImage(fd)
+        const url = await uploadMedia(compressedFile)
         if (process.env.NODE_ENV === "development") {
           console.log(`[site-settings-form] uploaded ${target}:`, url)
         }

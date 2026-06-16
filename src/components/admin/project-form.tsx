@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, X, Upload, ExternalLink, CheckCircle } from "lucide-react"
-import { createProject, updateProject, uploadImage } from "@/lib/actions/admin"
+import { createProject, updateProject } from "@/lib/actions/admin"
+import { uploadMedia } from "@/lib/supabase/upload"
 import { compressImage } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
 import type { GalleryItem } from "@/lib/projects"
@@ -146,10 +147,7 @@ export function ProjectForm({ initial }: Props) {
             type: `image/${ext === "jpg" ? "jpeg" : ext}`,
           })
 
-          const fd = new FormData()
-          fd.append("file", compressedFile)
-          fd.append("bucket", "portfolio-images")
-          const url = await uploadImage(fd)
+          const url = await uploadMedia(compressedFile)
 
           if (target === "cover_image") setCoverImage(url)
           else if (target === "hero_image") setHeroImage(url)
@@ -188,10 +186,7 @@ export function ProjectForm({ initial }: Props) {
           const sanitizedName = `${crypto.randomUUID()}.${ext}`
           const renamedFile = new File([file], sanitizedName, { type: file.type })
 
-          const fd = new FormData()
-          fd.append("file", renamedFile)
-          fd.append("bucket", "portfolio-images")
-          const url = await uploadImage(fd)
+          const url = await uploadMedia(renamedFile)
 
           if (isGalleryKey(target)) appendToGallery(target, { type: "video", url })
         } catch (e) {
@@ -222,10 +217,46 @@ export function ProjectForm({ initial }: Props) {
     setters[key](state[key].filter((_, i) => i !== idx))
   }
 
+  function containsRawMedia(value: unknown): boolean {
+    if (typeof value === "string") {
+      if (value.startsWith("data:") || value.startsWith("blob:")) return true
+    }
+    if (Array.isArray(value)) {
+      return value.some((item) => containsRawMedia(item))
+    }
+    if (value && typeof value === "object") {
+      return Object.values(value).some((v) => containsRawMedia(v))
+    }
+    return false
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
     setError("")
+
+    const payload = {
+      title, slug, type, year, role,
+      short_description: shortDescription,
+      description,
+      cover_image: coverImage,
+      hero_image: heroImage,
+      mood_images: moodImages,
+      sketch_images: sketchImages,
+      material_images: materialImages,
+      gallery_images: galleryImages,
+      materials: [] as { label: string; value: string }[],
+      credits,
+      featured,
+      published,
+      sort_order: sortOrder,
+    }
+
+    if (containsRawMedia(payload)) {
+      setError("Media must be uploaded before saving.")
+      setSaving(false)
+      return
+    }
 
     const fd = new FormData()
     fd.set("title", title)
