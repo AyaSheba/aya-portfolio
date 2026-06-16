@@ -154,11 +154,11 @@ export function ProjectForm({ initial }: Props) {
     try {
       if (isEdit && initial) {
         await updateProject(initial.id, fd)
-        setSaved(true)
       } else {
         await createProject(fd)
-        setSaved(true)
       }
+      setSaved(true)
+      setSaving(false)
       setTimeout(() => setSaved(false), 4000)
       router.refresh()
     } catch (err: unknown) {

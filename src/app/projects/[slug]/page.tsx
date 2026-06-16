@@ -56,7 +56,7 @@ export default async function ProjectPage({ params }: Props) {
       <section className="relative flex min-h-[75vh] items-end overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${project.hero})` }}
+          style={{ backgroundImage: `url(${project.hero || "/images/the-last-light-hero.jpg"})` }}
         />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#050505_70%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -79,11 +79,11 @@ export default async function ProjectPage({ params }: Props) {
               {project.title}
             </h1>
             <div className="mt-4 space-y-1 text-xs text-text-muted">
-              <p>Role: {project.role}</p>
-              <p>Year: {project.year}</p>
+              <p>Role: {project.role || "\u2014"}</p>
+              <p>Year: {project.year || "\u2014"}</p>
             </div>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-cream/60">
-              {project.description}
+              {project.description || ""}
             </p>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default async function ProjectPage({ params }: Props) {
             <span className="text-[10px] tracking-[0.3em] uppercase text-gold">Concept</span>
             <div className="mt-6">
               <p className="text-sm leading-relaxed text-text-secondary">
-                {project.concept}
+                {project.concept || ""}
               </p>
             </div>
           </div>

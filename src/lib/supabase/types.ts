@@ -26,13 +26,13 @@ export interface ProjectRow {
 
 export function rowToProject(row: ProjectRow): Project {
   return {
-    slug: row.slug,
-    title: row.title,
-    category: row.type,
-    role: row.role,
+    slug: row.slug ?? "",
+    title: row.title ?? "",
+    category: row.type ?? "",
+    role: row.role ?? "",
     year: row.year ?? new Date().getFullYear(),
-    description: row.short_description,
-    concept: row.description,
+    description: row.short_description ?? "",
+    concept: row.description ?? "",
     hero: row.hero_image ?? "",
     thumbnail: row.cover_image ?? "",
     gallery: row.gallery_images ?? [],
