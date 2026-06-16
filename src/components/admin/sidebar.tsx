@@ -25,7 +25,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 flex h-screen w-56 flex-col border-r border-[#1a1a1a] bg-[#0a0a0a]">
+    <aside className="fixed left-0 top-16 flex h-[calc(100vh-4rem)] w-56 flex-col border-r border-[#1a1a1a] bg-[#0a0a0a]">
       <div className="flex h-16 items-center border-b border-[#1a1a1a] px-6">
         <Link href="/admin" className="font-serif text-lg tracking-wide text-[#f0ebe0]">
           Aya / Admin
