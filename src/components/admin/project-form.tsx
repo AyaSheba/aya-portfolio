@@ -63,6 +63,7 @@ export function ProjectForm({ initial }: Props) {
   const [materialImages, setMaterialImages] = useState<string[]>(initial?.material_images ?? [])
   const [galleryImages, setGalleryImages] = useState<string[]>(initial?.gallery_images ?? [])
 
+  const [credits, setCredits] = useState<{ role: string; name: string }[]>(initial?.credits ?? [])
   const [featured, setFeatured] = useState(initial?.featured ?? false)
   const [published, setPublished] = useState(initial?.published ?? false)
   const [sortOrder, setSortOrder] = useState(initial?.sort_order?.toString() ?? "0")
@@ -177,7 +178,7 @@ export function ProjectForm({ initial }: Props) {
     fd.set("material_images", JSON.stringify(materialImages))
     fd.set("gallery_images", JSON.stringify(galleryImages))
     fd.set("materials", JSON.stringify([]))
-    fd.set("credits", JSON.stringify([]))
+    fd.set("credits", JSON.stringify(credits))
     fd.set("featured", featured ? "true" : "false")
     fd.set("published", published ? "true" : "false")
     fd.set("sort_order", sortOrder)
@@ -317,6 +318,54 @@ export function ProjectForm({ initial }: Props) {
               />
             )
           })}
+        </div>
+      </Section>
+
+      {/* Credits */}
+      <Section title="Credits">
+        <div className="space-y-3">
+          {credits.map((credit, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <Field label="Role">
+                <input
+                  className={cn(inputCls, "mt-1.5")}
+                  value={credit.role}
+                  onChange={(e) => {
+                    const next = [...credits]
+                    next[i] = { ...next[i], role: e.target.value }
+                    setCredits(next)
+                  }}
+                  placeholder="Director, DOP..."
+                />
+              </Field>
+              <Field label="Name">
+                <input
+                  className={cn(inputCls, "mt-1.5")}
+                  value={credit.name}
+                  onChange={(e) => {
+                    const next = [...credits]
+                    next[i] = { ...next[i], name: e.target.value }
+                    setCredits(next)
+                  }}
+                  placeholder="Full name"
+                />
+              </Field>
+              <button
+                type="button"
+                onClick={() => setCredits(credits.filter((_, j) => j !== i))}
+                className="mt-5 flex h-9 w-9 shrink-0 items-center justify-center border border-[#333] text-[#686058] transition-colors hover:border-red-800 hover:text-red-400"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setCredits([...credits, { role: "", name: "" }])}
+            className="flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#b89a5e] transition-opacity hover:opacity-80"
+          >
+            <Plus className="h-3 w-3" /> Add Credit
+          </button>
         </div>
       </Section>
 
