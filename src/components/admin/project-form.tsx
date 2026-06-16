@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, X, Upload, ExternalLink, CheckCircle } from "lucide-react"
 import { createProject, updateProject, uploadImage } from "@/lib/actions/admin"
+import { compressImage } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
 
 interface Props {
@@ -67,6 +68,7 @@ export function ProjectForm({ initial }: Props) {
   const [sortOrder, setSortOrder] = useState(initial?.sort_order?.toString() ?? "0")
 
   const [uploading, setUploading] = useState<GalleryKey | ImageKey | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
 
   function generateSlug(val: string) {
     if (isEdit && initial?.title === title) return
@@ -105,9 +107,19 @@ export function ProjectForm({ initial }: Props) {
           return
         }
         setUploading(target)
+        setError("")
         try {
+          setUploadStatus("Optimizing image\u2026")
+          const { blob, ext } = await compressImage(file)
+
+          setUploadStatus("Uploading image\u2026")
+          const sanitizedName = `${crypto.randomUUID()}.${ext}`
+          const compressedFile = new File([blob], sanitizedName, {
+            type: `image/${ext === "jpg" ? "jpeg" : ext}`,
+          })
+
           const fd = new FormData()
-          fd.append("file", file)
+          fd.append("file", compressedFile)
           fd.append("bucket", "portfolio-images")
           const url = await uploadImage(fd)
 
@@ -121,6 +133,7 @@ export function ProjectForm({ initial }: Props) {
           setError(e instanceof Error ? e.message : "Upload failed")
         } finally {
           setUploading(null)
+          setUploadStatus(null)
         }
       }
       input.click()
@@ -269,6 +282,7 @@ export function ProjectForm({ initial }: Props) {
             onUpload={() => handleUpload("cover_image")}
             onRemove={() => setCoverImage("")}
             uploading={uploading === "cover_image"}
+            uploadStatus={uploading === "cover_image" ? uploadStatus : null}
           />
           <SingleImageUpload
             label="Hero Image"
@@ -276,6 +290,7 @@ export function ProjectForm({ initial }: Props) {
             onUpload={() => handleUpload("hero_image")}
             onRemove={() => setHeroImage("")}
             uploading={uploading === "hero_image"}
+            uploadStatus={uploading === "hero_image" ? uploadStatus : null}
           />
         </div>
       </Section>
@@ -296,6 +311,7 @@ export function ProjectForm({ initial }: Props) {
                 label={galleryLabels[key]}
                 images={images[key]}
                 uploading={uploading === key}
+                uploadStatus={uploading === key ? uploadStatus : null}
                 onUpload={() => handleUpload(key)}
                 onRemove={(idx) => removeGalleryImg(key, idx)}
               />
@@ -411,12 +427,14 @@ function SingleImageUpload({
   onUpload,
   onRemove,
   uploading,
+  uploadStatus,
 }: {
   label: string
   value: string
   onUpload: () => void
   onRemove: () => void
   uploading: boolean
+  uploadStatus: string | null
 }) {
   return (
     <div>
@@ -455,7 +473,7 @@ function SingleImageUpload({
             className="flex h-40 w-full items-center justify-center border-2 border-dashed border-[#222] bg-[#0a0a0a] text-[#686058] transition-colors hover:border-[#333] disabled:opacity-50"
           >
             {uploading ? (
-              <span className="text-xs">Uploading...</span>
+              <span className="text-xs">{uploadStatus || "Uploading\u2026"}</span>
             ) : (
               <Upload className="h-5 w-5" />
             )}
@@ -470,12 +488,14 @@ function GallerySection({
   label,
   images,
   uploading,
+  uploadStatus,
   onUpload,
   onRemove,
 }: {
   label: string
   images: string[]
   uploading: boolean
+  uploadStatus: string | null
   onUpload: () => void
   onRemove: (idx: number) => void
 }) {
@@ -490,7 +510,7 @@ function GallerySection({
           className="flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase text-[#b89a5e] transition-opacity hover:opacity-80 disabled:opacity-50"
         >
           {uploading ? (
-            "Uploading..."
+            uploadStatus || "Uploading\u2026"
           ) : (
             <>
               <Plus className="h-3 w-3" />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Upload, ExternalLink, X, CheckCircle } from "lucide-react"
 import { saveSiteSettings } from "@/lib/actions/admin-site"
 import { uploadImage } from "@/lib/actions/admin"
+import { compressImage } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
 import type { SiteSettings, ProcessStep } from "@/lib/supabase/site-settings"
 
@@ -14,6 +15,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
   const [uploading, setUploading] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null)
 
   const [hero_title, setHeroTitle] = useState(settings.hero_title)
   const [hero_subtitle, setHeroSubtitle] = useState(settings.hero_subtitle)
@@ -61,9 +63,19 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
         return
       }
       setUploading(target)
+      setError("")
       try {
+        setUploadStatus("Optimizing image\u2026")
+        const { blob, ext } = await compressImage(file)
+
+        setUploadStatus("Uploading image\u2026")
+        const sanitizedName = `${crypto.randomUUID()}.${ext}`
+        const compressedFile = new File([blob], sanitizedName, {
+          type: `image/${ext === "jpg" ? "jpeg" : ext}`,
+        })
+
         const fd = new FormData()
-        fd.append("file", file)
+        fd.append("file", compressedFile)
         fd.append("bucket", "portfolio-images")
         const url = await uploadImage(fd)
         if (process.env.NODE_ENV === "development") {
@@ -82,6 +94,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
         setError(e instanceof Error ? e.message : "Upload failed")
       } finally {
         setUploading(null)
+        setUploadStatus(null)
       }
     }
     input.click()
@@ -190,6 +203,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
               onUpload={() => handleUpload("hero_background_image")}
               onRemove={() => setHeroBgImage("")}
               uploading={uploading === "hero_background_image"}
+              uploadStatus={uploading === "hero_background_image" ? uploadStatus : null}
             />
           </div>
         </div>
@@ -211,6 +225,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
               onUpload={() => handleUpload("about_image")}
               onRemove={() => setAboutImage("")}
               uploading={uploading === "about_image"}
+              uploadStatus={uploading === "about_image" ? uploadStatus : null}
             />
           </Field>
           <div className="md:col-span-2">
@@ -288,6 +303,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
                     onUpload={() => handleUpload(`step_${i}_thumb`)}
                     onRemove={() => updateStep(i, "thumb", "")}
                     uploading={uploading === `step_${i}_thumb`}
+                    uploadStatus={uploading === `step_${i}_thumb` ? uploadStatus : null}
                   />
                 </div>
               </div>
@@ -375,12 +391,14 @@ function SingleImageUpload({
   onUpload,
   onRemove,
   uploading,
+  uploadStatus,
 }: {
   label: string
   value: string
   onUpload: () => void
   onRemove: () => void
   uploading: boolean
+  uploadStatus: string | null
 }) {
   return (
     <div>
@@ -419,7 +437,7 @@ function SingleImageUpload({
             className="flex h-32 w-full items-center justify-center border-2 border-dashed border-[#222] bg-[#0a0a0a] text-[#686058] transition-colors hover:border-[#333] disabled:opacity-50"
           >
             {uploading ? (
-              <span className="text-xs">Uploading...</span>
+              <span className="text-xs">{uploadStatus || "Uploading\u2026"}</span>
             ) : (
               <Upload className="h-5 w-5" />
             )}
