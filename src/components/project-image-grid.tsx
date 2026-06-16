@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function ProjectImageGrid({ images }: Props) {
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   return (
     <>
@@ -17,7 +17,7 @@ export function ProjectImageGrid({ images }: Props) {
           <button
             key={i}
             type="button"
-            onClick={() => setLightboxSrc(img)}
+            onClick={() => setLightboxIndex(i)}
             className="aspect-[4/3] min-w-[240px] flex-shrink-0 overflow-hidden border border-gold/20 md:min-w-[280px] cursor-pointer group"
           >
             <div
@@ -27,7 +27,14 @@ export function ProjectImageGrid({ images }: Props) {
           </button>
         ))}
       </div>
-      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={(i) => setLightboxIndex(i)}
+        />
+      )}
     </>
   )
 }
