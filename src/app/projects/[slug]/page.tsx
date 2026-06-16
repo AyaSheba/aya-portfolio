@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { getProjectBySlug } from "@/lib/supabase/projects"
 import { SectionReveal } from "@/components/section-reveal"
+import { ProjectImageGrid } from "@/components/project-image-grid"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -117,19 +118,7 @@ export default async function ProjectPage({ params }: Props) {
             <div className="grid gap-8 md:grid-cols-[1fr_280px]">
               <div>
                 {section.images.length > 0 ? (
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {section.images.map((img, i) => (
-                      <div
-                        key={i}
-                        className="aspect-[4/3] min-w-[240px] flex-shrink-0 overflow-hidden border border-gold/20 md:min-w-[280px]"
-                      >
-                        <div
-                          className="h-full w-full bg-cover bg-center transition-transform duration-500 hover:scale-105"
-                          style={{ backgroundImage: `url(${img})` }}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <ProjectImageGrid images={section.images} />
                 ) : (
                   <div className="grid gap-4 md:grid-cols-4">
                     {project.materials.map((m) => (
